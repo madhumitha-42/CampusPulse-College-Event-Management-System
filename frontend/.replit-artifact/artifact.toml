@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CampusPulse"
+description = "A full-stack college event and participation management system for administrators and students, with real event CRUD, registrations, dashboards, and role-based access."
+version = "1.0.0"
+id = "artifacts/college-events"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 26033
+
+[services.development]
+run = "pnpm --filter @workspace/college-events run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/college-events", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/college-events/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26033"
+BASE_PATH = "/"

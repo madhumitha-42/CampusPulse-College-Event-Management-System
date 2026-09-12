@@ -1,0 +1,634 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: REST API for CampusPulse college events and participation.
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication and profiles
+  - name: categories
+    description: Event categories
+  - name: events
+    description: College events
+  - name: registrations
+    description: Student registrations
+  - name: dashboard
+    description: Dashboard summaries
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/register/:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Register a student account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /auth/login/:
+    post:
+      operationId: loginUser
+      tags: [auth]
+      summary: Login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/refresh/:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh an access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshInput"
+      responses:
+        "200":
+          description: Refreshed token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/me/:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get the current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /categories/:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List categories
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /categories/{id}/:
+    get:
+      operationId: getCategory
+      tags: [categories]
+      summary: Get a category
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /events/:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List and filter events
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: category
+          schema: { type: integer }
+        - in: query
+          name: status
+          schema: { $ref: "#/components/schemas/EventStatus" }
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+        - in: query
+          name: ordering
+          schema: { type: string, enum: [date, -date, title, -title, -created_at] }
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+    post:
+      operationId: createEvent
+      tags: [events]
+      summary: Create an event
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "201":
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /events/{id}/:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get an event
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateEvent
+      tags: [events]
+      summary: Update an event
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventInput"
+      responses:
+        "200":
+          description: Updated event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      operationId: deleteEvent
+      tags: [events]
+      summary: Delete an event
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Deleted
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /events/{id}/register/:
+    post:
+      operationId: registerForEvent
+      tags: [registrations]
+      summary: Register the current student for an event
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "201":
+          description: Registration created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Registration conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /registrations/:
+    get:
+      operationId: listRegistrations
+      tags: [registrations]
+      summary: List registrations (admin)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Registration list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Registration"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /registrations/my/:
+    get:
+      operationId: listMyRegistrations
+      tags: [registrations]
+      summary: List registrations for the current student
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Registration list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Registration"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /registrations/{id}/:
+    get:
+      operationId: getRegistration
+      tags: [registrations]
+      summary: Get a registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Registration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      operationId: updateRegistration
+      tags: [registrations]
+      summary: Update registration status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrationUpdate"
+      responses:
+        "200":
+          description: Updated registration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Registration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    delete:
+      operationId: cancelRegistration
+      tags: [registrations]
+      summary: Cancel a registration
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: Cancelled
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /dashboard/stats/:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get role-aware dashboard statistics
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Permission denied
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        details:
+          type: object
+          additionalProperties: true
+    User:
+      type: object
+      required: [id, name, email, role, created_at]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [ADMIN, STUDENT] }
+        created_at: { type: string, format: date-time }
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 2 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    RefreshInput:
+      type: object
+      required: [refresh]
+      properties:
+        refresh: { type: string }
+    TokenResponse:
+      type: object
+      required: [access]
+      properties:
+        access: { type: string }
+        refresh: { type: string }
+    AuthResponse:
+      allOf:
+        - $ref: "#/components/schemas/TokenResponse"
+        - type: object
+          required: [user]
+          properties:
+            user: { $ref: "#/components/schemas/User" }
+    Category:
+      type: object
+      required: [id, name, description, created_at, event_count]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+        event_count: { type: integer }
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 2 }
+        description: { type: string }
+    EventStatus:
+      type: string
+      enum: [UPCOMING, ONGOING, COMPLETED, CANCELLED]
+    Event:
+      type: object
+      required: [id, title, description, category, date, start_time, end_time, venue, organizer, capacity, registration_deadline, status, created_at, updated_at, participant_count]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        category:
+          type: object
+          required: [id, name]
+          properties:
+            id: { type: integer }
+            name: { type: string }
+        date: { type: string, format: date }
+        start_time: { type: string, format: time }
+        end_time: { type: string, format: time }
+        venue: { type: string }
+        organizer: { type: string }
+        capacity: { type: integer }
+        registration_deadline: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/EventStatus" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        participant_count: { type: integer }
+    EventInput:
+      type: object
+      required: [title, description, category, date, start_time, end_time, venue, organizer, capacity, registration_deadline]
+      properties:
+        title: { type: string, minLength: 2 }
+        description: { type: string, minLength: 1 }
+        category: { type: integer }
+        date: { type: string, format: date }
+        start_time: { type: string, format: time }
+        end_time: { type: string, format: time }
+        venue: { type: string }
+        organizer: { type: string }
+        capacity: { type: integer, minimum: 1 }
+        registration_deadline: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/EventStatus" }
+    RegistrationStatus:
+      type: string
+      enum: [REGISTERED, CANCELLED, ATTENDED, ABSENT]
+    Registration:
+      type: object
+      required: [id, student, event, registration_date, status]
+      properties:
+        id: { type: integer }
+        student: { $ref: "#/components/schemas/User" }
+        event: { $ref: "#/components/schemas/Event" }
+        registration_date: { type: string, format: date-time }
+        status: { $ref: "#/components/schemas/RegistrationStatus" }
+    RegistrationUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { $ref: "#/components/schemas/RegistrationStatus" }
+    DashboardStats:
+      type: object
+      required: [total_events, upcoming_events, completed_events, cancelled_events, total_students, total_registrations, recent_events, my_registrations, available_events]
+      properties:
+        total_events: { type: integer }
+        upcoming_events: { type: integer }
+        completed_events: { type: integer }
+        cancelled_events: { type: integer }
+        total_students: { type: integer }
+        total_registrations: { type: integer }
+        recent_events:
+          type: array
+          items: { $ref: "#/components/schemas/Event" }
+        my_registrations: { type: integer }
+        available_events: { type: integer }
+

@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "CampusPulse API",
+    "_postman_id": "campuspulse-demo-collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080/api" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "category_id", "value": "1" },
+    { "key": "event_id", "value": "1" },
+    { "key": "registration_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Demo Student\",\"email\":\"demo.student@example.com\",\"password\":\"StudentPass!123\"}" },
+            "url": "{{base_url}}/auth/register/"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"email\":\"admin@campuspulse.demo\",\"password\":\"CampusDemo!2026\"}" },
+            "url": "{{base_url}}/auth/login/"
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"refresh\":\"{{refresh_token}}\"}" },
+            "url": "{{base_url}}/auth/refresh/"
+          }
+        },
+        {
+          "name": "Me",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/auth/me/" }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{base_url}}/categories/" } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Research\",\"description\":\"Research and academic events.\"}" },
+            "url": "{{base_url}}/categories/"
+          }
+        },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{base_url}}/categories/{{category_id}}/" } },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"description\":\"Updated description\"}" },
+            "url": "{{base_url}}/categories/{{category_id}}/"
+          }
+        },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/categories/{{category_id}}/" } }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "url": "{{base_url}}/events/?status=UPCOMING&ordering=date" } },
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":\"API Demo Event\",\"description\":\"Created from Postman.\",\"category\":{{category_id}},\"date\":\"2026-12-10\",\"start_time\":\"10:00\",\"end_time\":\"12:00\",\"venue\":\"Innovation Lab\",\"organizer\":\"Student Council\",\"capacity\":50,\"registration_deadline\":\"2026-12-09T18:00:00Z\",\"status\":\"UPCOMING\"}" },
+            "url": "{{base_url}}/events/"
+          }
+        },
+        { "name": "Detail", "request": { "method": "GET", "url": "{{base_url}}/events/{{event_id}}/" } },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":\"Updated API Demo Event\"}" },
+            "url": "{{base_url}}/events/{{event_id}}/"
+          }
+        },
+        { "name": "Delete", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/events/{{event_id}}/" } }
+      ]
+    },
+    {
+      "name": "Registrations and Dashboard",
+      "item": [
+        { "name": "Register for Event", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/events/{{event_id}}/register/" } },
+        { "name": "My Registrations", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/registrations/my/" } },
+        { "name": "All Registrations", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/registrations/" } },
+        { "name": "Registration Detail", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/registrations/{{registration_id}}/" } },
+        {
+          "name": "Update Registration",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"status\":\"ATTENDED\"}" },
+            "url": "{{base_url}}/registrations/{{registration_id}}/"
+          }
+        },
+        { "name": "Cancel Registration", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/registrations/{{registration_id}}/" } },
+        { "name": "Dashboard Stats", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/dashboard/stats/" } }
+      ]
+    }
+  ]
+}
