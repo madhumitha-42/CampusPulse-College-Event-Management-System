@@ -1,121 +1,187 @@
-# CampusPulse
+# Smart College Event & Participation Management System (CampusPulse)
 
-Smart College Event & Participation Management System — a real CRUD application for student event discovery, registration, and coordinator operations.
+CampusPulse is a full-stack web application for college event discovery, student registration, and coordinator management. Built with **React**, **Vite**, **TypeScript**, **Django REST Framework**, and **PostgreSQL / SQLite**.
 
-## Overview
+---
 
-CampusPulse replaces disconnected notices and spreadsheets with one shared calendar. Students can discover events, search by title or venue, filter by category and status, register, and cancel registrations. Coordinators can create, edit, delete, and organize events, manage categories, review participant rosters, update attendance status, and see live dashboard statistics.
+## ⚠️ Important Note on GitHub Pages vs Real Deployment
 
-## Objectives
+> [!WARNING]
+> **Why GitHub Pages shows `README.html` when clicking "Visit site"**:
+> GitHub Pages is a hosting service meant for static HTML/CSS/JS websites or documentation pages. When enabled on a source repository without static output configuration, GitHub Pages automatically converts `README.md` into `README.html`.
+> 
+> A full-stack application (Django Python API + JWT Auth + Database + React Frontend) **cannot** run on GitHub Pages because GitHub Pages does not execute server-side Python code or host databases.
+> 
+> **How to fix "Visit site" on GitHub Pages**:
+> 1. Go to your GitHub repository -> **Settings** -> **Pages**.
+> 2. Under **Build and deployment** -> **Source**, select **Disabled** (or configure a custom workflow pointing to your deployed domain).
+> 3. Add your **Real Live Deployed URL** (e.g., on Render or Vercel) to your GitHub repository's **Website** link at the top right of the main repository page (About -> Website).
 
-- Demonstrate complete Create, Read, Update, and Delete workflows.
-- Apply secure JWT authentication and role-based access for administrators and students.
-- Use relational database models, foreign keys, migrations, and a database-level duplicate-registration constraint.
-- Provide a responsive, polished React experience backed by real Django APIs.
-- Supply a GitHub-ready college submission with tests, API documentation, report material, and a Postman collection.
+---
 
-## Technology stack
+## 🚀 Live Production Deployment Options
+
+This project is fully configured for cloud deployment across free/low-cost platforms.
+
+### Option 1: Render 1-Click Blueprint (Recommended Fullstack Deployment)
+
+The repository includes a `render.yaml` infrastructure-as-code file that deploys the Django REST API, PostgreSQL database, and React frontend automatically on [Render](https://render.com).
+
+1. Push this repository to GitHub.
+2. Log in to [Render](https://render.com) and click **New +** -> **Blueprint**.
+3. Connect your GitHub repository `Smart-College-Event-Participation-Management-System`.
+4. Render will automatically detect `render.yaml` and provision:
+   - **`campuspulse-backend`**: Django Web Service running Gunicorn and WhiteNoise.
+   - **`campuspulse-db`**: PostgreSQL Database instance.
+   - **`campuspulse-frontend`**: React/Vite Static Site with SPA routing.
+5. Click **Apply**. Once built, open your live deployed frontend URL!
+
+---
+
+### Option 2: Vercel (Frontend) + Render / Railway (Backend)
+
+#### Step 1: Deploy Backend to Render / Railway
+- **Environment**: Python 3.11+
+- **Build Command**: `bash backend/build.sh`
+- **Start Command**: `cd backend && gunicorn config.wsgi:application`
+- **Environment Variables**:
+  - `DJANGO_SECRET_KEY`: (Generate a secure secret key)
+  - `DJANGO_DEBUG`: `0`
+  - `ALLOWED_HOSTS`: `*`
+  - `CORS_ALLOW_ALL_ORIGINS`: `1` (or specify frontend domain)
+  - `DATABASE_URL`: (PostgreSQL connection string from Render/Railway/Neon)
+
+#### Step 2: Deploy Frontend to Vercel
+- Import repository into [Vercel](https://vercel.com).
+- **Framework Preset**: Vite
+- **Root Directory**: `./` (or `frontend`)
+- **Build Command**: `pnpm --filter @workspace/college-events run build`
+- **Output Directory**: `frontend/dist/public`
+- **Environment Variable**:
+  - `VITE_API_BASE_URL`: `https://your-backend-service.onrender.com`
+
+---
+
+### Option 3: Containerized Deployment (Docker & Docker Compose)
+
+To run the complete production setup locally or on a Virtual Private Server (VPS / EC2):
+
+```bash
+docker compose up --build -d
+```
+
+This will launch PostgreSQL on port `5432` and the Django production container on port `8000`.
+
+---
+
+## 🛠️ Technology Stack
 
 | Layer | Technology |
 | --- | --- |
-| Frontend | React, Vite, TypeScript, Wouter, Tailwind CSS |
-| Backend | Python, Django 5.2, Django REST Framework |
-| Authentication | JWT with `djangorestframework-simplejwt` |
-| Database | SQLite and Django ORM |
-| API contract | OpenAPI 3.1 with Orval-generated React Query hooks |
-| Testing | Django `APITestCase` |
+| **Frontend** | React 19, Vite, TypeScript, Wouter, Tailwind CSS, TanStack React Query |
+| **Backend** | Python 3.11+, Django 5.2, Django REST Framework |
+| **Authentication** | JWT with `djangorestframework-simplejwt` |
+| **Database** | PostgreSQL (Production via `DATABASE_URL`) / SQLite (Local Development) |
+| **API Contract** | OpenAPI 3.1 with Orval-generated React Query hooks |
+| **Static Files** | WhiteNoise |
+| **WSGI Server** | Gunicorn |
 
-## Features
+---
 
-- Public landing page, login, and student registration.
-- Role-aware student and coordinator dashboards.
-- Event CRUD with date, time, capacity, deadline, status, category, and validation.
-- Category CRUD with duplicate-name validation.
-- Event discovery with backend-powered search, category/status/date filters, and ordering.
-- Student registration, duplicate protection, capacity/deadline/cancellation checks, and registration history.
-- Coordinator participant management with attendance status updates.
-- Responsive navigation, tables, cards, loading states, empty states, error messages, and destructive-action confirmations.
+## ⚙️ Environment Variables Reference
 
-## Project structure
+### Backend Environment Variables (`backend/.env`)
 
-```text
-backend/
-  manage.py
-  config/
-  core/
-    models.py
-    serializers.py
-    views.py
-    tests.py
-    migrations/
-artifacts/college-events/     React/Vite frontend
-lib/api-spec/openapi.yaml     API contract
-lib/api-client-react/         generated React Query client
-docs/                         report and submission documentation
-```
+| Variable | Required | Description | Example |
+| --- | --- | --- | --- |
+| `DJANGO_SECRET_KEY` | Yes (Prod) | Django encryption key | `random-50-char-secret-key` |
+| `DJANGO_DEBUG` | Yes | `0` for production, `1` for dev | `0` |
+| `ALLOWED_HOSTS` | Yes | Comma-separated allowed hosts | `campuspulse-backend.onrender.com,*` |
+| `CORS_ALLOWED_ORIGINS` | No | Allowed frontend domains | `https://campuspulse.vercel.app` |
+| `CSRF_TRUSTED_ORIGINS` | No | Trusted origins for CSRF | `https://campuspulse.vercel.app` |
+| `DATABASE_URL` | No | PostgreSQL connection URL | `postgres://user:pass@host:5432/dbname` |
 
-## Setup and run
+### Frontend Environment Variables (`frontend/.env`)
 
-The Python dependencies are listed in `backend/requirements.txt`. In this Replit workspace they are installed into `.pythonlibs`.
+| Variable | Required | Description | Example |
+| --- | --- | --- | --- |
+| `VITE_API_BASE_URL` | Yes (Prod) | URL of deployed Django REST API | `https://campuspulse-backend.onrender.com` |
 
-```bash
-python backend/manage.py migrate
-python backend/manage.py load_demo_data
-```
+---
 
-Run the two services:
+## 💻 Local Development Setup
 
-```bash
-pnpm --filter @workspace/api-server run dev
-pnpm --filter @workspace/college-events run dev
-```
+1. **Clone Repository**:
+   ```bash
+   git clone https://github.com/madhumitha-42/Smart-College-Event-Participation-Management-System.git
+   cd Smart-College-Event-Participation-Management-System
+   ```
 
-Use the Replit preview for the frontend. The frontend calls the Django API through `/api`.
+2. **Backend Setup**:
+   ```bash
+   cd backend
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On Linux/macOS:
+   source venv/bin/activate
 
-### Environment variables
+   pip install -r requirements.txt
+   python manage.py migrate
+   python manage.py load_demo_data
+   python manage.py runserver 0.0.0.0:8000
+   ```
 
-Copy `backend/.env.example` when running outside Replit:
+3. **Frontend Setup**:
+   ```bash
+   pnpm install
+   pnpm --filter @workspace/college-events run dev
+   ```
 
-```env
-DJANGO_SECRET_KEY=replace-me
-DJANGO_DEBUG=1
-```
+---
 
-Never commit `.env`, passwords, or JWT secrets.
+## 🔑 Demo Credentials
 
-## Demo accounts
+Loaded automatically by `python manage.py load_demo_data`:
 
-The `load_demo_data` command creates fictional accounts for a college demonstration:
+- **Coordinator / Admin**: `admin@campuspulse.demo` / `CampusDemo!2026`
+- **Student**: `mira@campuspulse.demo` / `StudentDemo!2026`
+- Additional demo students: `rohan@campuspulse.demo`, `diya@campuspulse.demo` (Same password: `StudentDemo!2026`)
 
-- Coordinator: `admin@campuspulse.demo` / `CampusDemo!2026`
-- Student: `mira@campuspulse.demo` / `StudentDemo!2026`
-- Additional students use the same student password.
+---
 
-Change or remove these accounts before any real deployment.
-
-## Tests and code generation
+## 🧪 Testing & Verification Commands
 
 ```bash
+# Run backend unit tests
 python backend/manage.py test core
-pnpm --filter @workspace/college-events run typecheck
-pnpm --filter @workspace/api-spec run codegen
-pnpm run typecheck
+
+# Check Django production readiness
+python backend/manage.py check --deploy
+
+# Build React frontend for production
+pnpm --filter @workspace/college-events run build
 ```
 
-The OpenAPI document is the source of truth. Re-run codegen whenever the API contract changes.
+---
 
-## Documentation
+## 📋 VSB Skill Vault Demonstration Walkthrough
 
-- [Project report](docs/PROJECT_REPORT.md)
-- [API documentation](docs/API_DOCUMENTATION.md)
-- [Test cases](docs/TEST_CASES.md)
-- [ER diagram](docs/ER_DIAGRAM.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Demo guide](docs/DEMO_GUIDE.md)
-- [Viva questions](docs/VIVA_QUESTIONS.md)
-- [SOP mapping](docs/SOP_MAPPING.md)
-- [Postman collection](docs/postman/CampusPulse.postman_collection.json)
+When presenting this project during evaluation:
 
-## Future enhancements
-
-Email reminders, QR-based check-in, image uploads for event posters, pagination for large campuses, calendar export, and analytics by department are natural next steps.
+1. **Show Live Deployed URL**: Demonstrate that the frontend and backend are running live on cloud infrastructure (e.g. Render / Vercel) connected via `VITE_API_BASE_URL`.
+2. **Student Event Registration Flow**:
+   - Log in as student (`mira@campuspulse.demo`).
+   - Browse events, use search and category filters.
+   - Click **Register** on an upcoming event.
+   - Show duplicate registration prevention (clicking Register again yields instant validation feedback).
+3. **Coordinator Operations Flow**:
+   - Log in as coordinator (`admin@campuspulse.demo`).
+   - Access **Event Management** to create a new event or edit an existing one.
+   - Access **Taxonomy / Categories** to create a new event category.
+   - View **Participant Roster** and update attendance status (Registered -> Attended).
+   - Show live **Dashboard Statistics** updating dynamically.
+4. **Codebase & Architecture**:
+   - Highlight clean REST API design in Django (`backend/core/views.py`).
+   - Highlight TypeScript type-safety and generated API hooks (`lib/api-client-react`).
+   - Point to test cases (`docs/TEST_CASES.md`) and API contract (`lib/api-spec/openapi.yaml`).

@@ -12,7 +12,7 @@ import {
 import type {
   Category, CategoryInput, Event, EventInput, EventStatus, RegistrationStatus, User,
 } from '@workspace/api-client-react';
-import { setAuthTokenGetter } from '@workspace/api-client-react';
+import { setAuthTokenGetter, setBaseUrl } from '@workspace/api-client-react';
 import {
   ArrowRight, CalendarDays, Check, CircleAlert, Clock3, Edit3,
   Filter, LayoutDashboard, ListChecks, Loader2, LogOut, MapPin, Menu, Plus, Search,
@@ -26,6 +26,9 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 const queryClient = new QueryClient();
 const getToken = () => localStorage.getItem('campuspulse_access');
 setAuthTokenGetter(getToken);
+if (import.meta.env.VITE_API_BASE_URL) {
+  setBaseUrl(import.meta.env.VITE_API_BASE_URL);
+}
 
 const cx = (...classes: Array<string | false | undefined>) => classes.filter(Boolean).join(' ');
 const dateLabel = (value?: string) => value ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(`${value}T12:00:00`)) : 'Date to be announced';

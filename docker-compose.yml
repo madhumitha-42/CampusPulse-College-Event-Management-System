@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: campuspulse_db
+    environment:
+      POSTGRES_DB: campuspulse
+      POSTGRES_USER: campuspulse_user
+      POSTGRES_PASSWORD: campuspulse_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campuspulse_user -d campuspulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: campuspulse_backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py load_demo_data &&
+             python manage.py collectstatic --no-input &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SECRET_KEY: "production-secret-key-for-docker-deployment"
+      DJANGO_DEBUG: "0"
+      ALLOWED_HOSTS: "*"
+      CORS_ALLOW_ALL_ORIGINS: "1"
+      DATABASE_URL: "postgres://campuspulse_user:campuspulse_password@db:5432/campuspulse"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
