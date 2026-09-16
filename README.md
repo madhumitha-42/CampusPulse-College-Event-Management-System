@@ -113,7 +113,7 @@ This will launch PostgreSQL on port `5432` and the Django production container o
 
 1. **Clone Repository**:
    ```bash
-   git clone https://github.com/madhumitha-42/Smart-College-Event-Participation-Management-System.git
+   git clone https://github.com/madhumitha-42/CampusPulse-College-Event-Management-System.git
    cd Smart-College-Event-Participation-Management-System
    ```
 
