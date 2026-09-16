@@ -25,9 +25,9 @@ services:
   # ---------------------------------------------------------------------------
   # React Frontend Static Site
   # ---------------------------------------------------------------------------
-  - type: static
+  - type: web
     name: campuspulse-frontend
-    runtime: node
+    runtime: static
     buildCommand: pnpm install && pnpm --filter @workspace/college-events run build
     staticPublishPath: frontend/dist/public
     routes:
